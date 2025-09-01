@@ -1,0 +1,178 @@
+# 💕 表白网站 💕
+
+一个浪漫的表白网站，使用纯HTML、CSS和JavaScript制作，可以部署到GitHub Pages。
+
+## 🌟 功能特点
+
+- 💖 浪漫的心形动画效果
+- 🎨 渐变背景和现代化设计
+- 💫 飘动的心形装饰
+- 🎯 交互式按钮和惊喜效果
+- 📱 响应式设计，支持移动端
+- ✨ 点击波纹和爆炸效果
+
+## 🚀 部署到GitHub Pages
+
+### 1. 创建GitHub仓库
+
+1. 登录GitHub，点击右上角的"+"号，选择"New repository"
+2. 仓库名称建议使用：`love-website` 或 `confession-site`
+3. 选择"Public"（公开仓库才能使用免费的GitHub Pages）
+4. 勾选"Add a README file"
+5. 点击"Create repository"
+
+### 2. 上传文件
+
+#### 方法一：使用Git命令行
+```bash
+# 克隆仓库到本地
+git clone https://github.com/你的用户名/仓库名.git
+cd 仓库名
+
+# 将网站文件复制到仓库目录
+# 然后提交
+git add .
+git commit -m "添加表白网站"
+git push origin main
+```
+
+#### 方法二：直接在GitHub网页上传
+1. 在仓库页面点击"uploading an existing file"
+2. 拖拽或选择你的文件（index.html, style.css, script.js）
+3. 填写提交信息，点击"Commit changes"
+
+### 3. 启用GitHub Pages
+
+1. 进入仓库的"Settings"页面
+2. 在左侧菜单找到"Pages"
+3. 在"Source"下选择"Deploy from a branch"
+4. 选择"main"分支和"/ (root)"文件夹
+5. 点击"Save"
+
+### 4. 访问你的网站
+
+几分钟后，你的网站就可以通过以下地址访问：
+- `https://你的用户名.github.io/仓库名`
+
+## 🌐 设置自定义域名
+
+### 1. 购买域名
+
+推荐域名注册商：
+- 阿里云万网
+- 腾讯云
+- GoDaddy
+- Namecheap
+
+### 2. 配置DNS
+
+在你的域名管理面板中添加以下记录：
+
+#### 方法一：CNAME记录（推荐）
+```
+类型: CNAME
+名称: www
+值: 你的用户名.github.io
+TTL: 600
+```
+
+#### 方法二：A记录
+```
+类型: A
+名称: @
+值: 185.199.108.153
+TTL: 600
+
+类型: A
+名称: @
+值: 185.199.109.153
+TTL: 600
+
+类型: A
+名称: @
+值: 185.199.110.153
+TTL: 600
+
+类型: A
+名称: @
+值: 185.199.111.153
+TTL: 600
+```
+
+### 3. 在GitHub Pages中设置域名
+
+1. 在仓库的"Settings" > "Pages"页面
+2. 在"Custom domain"输入框中输入你的域名
+3. 勾选"Enforce HTTPS"
+4. 点击"Save"
+
+### 4. 创建CNAME文件
+
+在仓库根目录创建`CNAME`文件，内容为你的域名：
+```
+yourdomain.com
+```
+
+## 🔧 自定义网站内容
+
+### 修改表白内容
+
+编辑`index.html`文件中的以下部分：
+```html
+<p class="message">在这个特别的日子里，我想告诉你...</p>
+<p class="love-text">你是我生命中最美好的遇见</p>
+<p class="love-text">愿我们的故事永远继续下去</p>
+```
+
+### 修改颜色主题
+
+编辑`style.css`文件中的颜色值：
+```css
+/* 背景渐变 */
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+/* 心形颜色 */
+background: #ff6b6b;
+
+/* 按钮颜色 */
+background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+```
+
+### 添加更多功能
+
+你可以在`script.js`中添加更多交互功能，比如：
+- 音乐播放
+- 更多动画效果
+- 照片展示
+- 倒计时功能
+
+## 📱 移动端优化
+
+网站已经包含响应式设计，在手机上也能完美显示。如果需要进一步优化，可以调整`style.css`中的媒体查询部分。
+
+## 🎨 设计建议
+
+1. **颜色搭配**：使用温暖的色调，如粉色、红色、紫色
+2. **字体选择**：选择优雅的字体，如思源黑体、微软雅黑
+3. **动画效果**：适度使用动画，不要过于花哨
+4. **内容长度**：保持内容简洁，重点突出
+
+## 🚀 后续迁移到服务器
+
+当你准备将网站迁移到自己的服务器时：
+
+1. **选择服务器**：阿里云、腾讯云、AWS等
+2. **配置环境**：安装Nginx或Apache
+3. **上传文件**：将网站文件上传到服务器
+4. **配置域名**：将域名解析指向服务器IP
+5. **SSL证书**：申请并配置HTTPS证书
+
+## 📞 技术支持
+
+如果在部署过程中遇到问题，可以：
+1. 查看GitHub Pages的官方文档
+2. 检查域名DNS配置是否正确
+3. 确认仓库设置为公开
+4. 等待DNS传播（通常需要几分钟到几小时）
+
+祝你表白成功！💕
