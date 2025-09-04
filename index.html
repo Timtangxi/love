@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💕 表白网站 💕</title>
+    <meta name="description" content="一个浪漫的表白网站，用爱意传递心声">
+    <meta name="keywords" content="表白,爱情,浪漫,网站">
+    <meta name="author" content="Love Website">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://your-domain.com/">
+    <meta property="og:title" content="💕 表白网站 💕">
+    <meta property="og:description" content="一个浪漫的表白网站，用爱意传递心声">
+    <meta property="og:image" content="https://your-domain.com/og-image.jpg">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://your-domain.com/">
+    <meta property="twitter:title" content="💕 表白网站 💕">
+    <meta property="twitter:description" content="一个浪漫的表白网站，用爱意传递心声">
+    <meta property="twitter:image" content="https://your-domain.com/og-image.jpg">
+    
+    <!-- 预加载关键资源 -->
+    <link rel="preload" href="style.css" as="style">
+    <link rel="preload" href="script.js" as="script">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" as="style">
+    
+    <!-- 样式表 -->
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- 主题颜色 -->
+    <meta name="theme-color" content="#ff6b6b">
+    <meta name="msapplication-TileColor" content="#ff6b6b">
+    
+    <!-- 图标 -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💕</text></svg>">
+</head>
+<body>
+    <div class="container">
+        <div class="heart-container">
+            <div class="heart"></div>
+        </div>
+        
+        <div class="content">
+            <h1 class="title">💕 我想对你说 💕</h1>
+            
+            <div class="message-box">
+                <p class="message">在这个特别的日子里，我想告诉你...</p>
+                <p class="love-text" data-text="你是我生命中最美好的遇见">你是我生命中最美好的遇见</p>
+                <p class="love-text" data-text="愿我们的故事永远继续下去">愿我们的故事永远继续下去</p>
+            </div>
+            
+            <div class="interactive-section">
+                <button class="love-button" onclick="showSurprise()">
+                    <span class="button-text">点击这里 💖</span>
+                    <span class="button-effect"></span>
+                </button>
+                <div id="surprise" class="surprise hidden">
+                    <p>❤️ 我爱你 ❤️</p>
+                    <div class="confetti"></div>
+                </div>
+            </div>
+            
+            <!-- 新增功能区域 -->
+            <div class="features-section">
+                <div class="feature-card" onclick="playLoveSound()">
+                    <div class="feature-icon">🎵</div>
+                    <div class="feature-text">爱的声音</div>
+                </div>
+                <div class="feature-card" onclick="showPhotoGallery()">
+                    <div class="feature-icon">📸</div>
+                    <div class="feature-text">美好回忆</div>
+                </div>
+                <div class="feature-card" onclick="showCountdown()">
+                    <div class="feature-icon">⏰</div>
+                    <div class="feature-text">重要时刻</div>
+                </div>
+            </div>
+            
+            <div class="floating-hearts">
+                <div class="floating-heart">💕</div>
+                <div class="floating-heart">💖</div>
+                <div class="floating-heart">💗</div>
+                <div class="floating-heart">💝</div>
+                <div class="floating-heart">💘</div>
+            </div>
+        </div>
+        
+        <!-- 加载动画 -->
+        <div id="loading" class="loading-overlay">
+            <div class="loading-heart">💕</div>
+            <div class="loading-text">加载中...</div>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
