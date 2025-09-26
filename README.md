@@ -6,18 +6,10 @@
 
 ```
 love-website/
-├── src/                    # 源码目录（GitHub Pages托管）
-│   ├── index.html         # 主页面
+├── index.html             # 唯一入口（引用 src/style.css 与 src/script.js）
+├── src/                   # 源码目录（CSS/JS及资产）
 │   ├── style.css          # 样式文件
 │   └── script.js          # 交互脚本
-├── server-deployment/     # 服务器部署配置
-│   ├── nginx.conf         # Nginx配置
-│   ├── deploy.sh          # 部署脚本
-│   ├── ssl-setup.sh       # SSL证书配置
-│   ├── backup.sh          # 备份脚本
-│   ├── monitoring.html    # 监控面板
-│   ├── DEPLOYMENT.md      # 服务器部署指南
-│   └── ...                # 其他服务器配置文件
 └── README.md              # 项目说明
 ```
 
@@ -29,6 +21,12 @@ love-website/
 - 🎯 交互式按钮和惊喜效果
 - 📱 响应式设计，支持移动端
 - ✨ 点击波纹和爆炸效果
+- 📸 画廊模态框（`showPhotoGallery()`）
+- ⏰ 重要时刻倒计时（`showCountdown()`，默认目标为当前时间+1年）
+- 🎵 简单音频提示（Web Audio API）
+- 🔔 顶部右侧提示通知（`showNotification(message)`）
+- 🖱️ 自定义爱心光标与跟随效果
+- 🚥 页面可见性优化与基础性能监控
 
 ## 🚀 部署方式
 
@@ -79,17 +77,9 @@ git push origin main
 几分钟后，你的网站就可以通过以下地址访问：
 - `https://你的用户名.github.io/仓库名`
 
-### 方式二：服务器部署（推荐高级用户）
+### 方式二：服务器部署（可选）
 
-适合需要自定义域名、SSL证书和高级功能的用户。
-
-**详细部署指南请查看：** [`server-deployment/DEPLOYMENT.md`](server-deployment/DEPLOYMENT.md)
-
-**快速部署步骤：**
-1. 将 `server-deployment/` 目录下的文件上传到服务器
-2. 修改 `ssl-setup.sh` 中的域名配置
-3. 运行 `./deploy.sh` 进行部署
-4. 运行 `./ssl-setup.sh` 配置SSL证书
+将本仓库作为静态站点部署到任意静态服务器（如Nginx/Apache）或对象存储（如阿里云OSS/腾讯云COS）。部署时确保 `index.html` 与 `src/` 保持原有相对路径结构即可。
 
 ## 🌐 自定义域名设置
 
@@ -127,14 +117,14 @@ TTL: 600
 3. 勾选"Enforce HTTPS"
 4. 点击"Save"
 
-#### 4. 创建CNAME文件
-在仓库根目录创建`CNAME`文件，内容为你的域名：
+#### 4. 创建CNAME文件（可选）
+在仓库根目录创建 `CNAME` 文件，内容为你的域名：
 ```
 yourdomain.com
 ```
 
 ### 服务器部署自定义域名
-服务器部署的自定义域名配置请参考 [`server-deployment/DEPLOYMENT.md`](server-deployment/DEPLOYMENT.md) 中的详细说明。
+参照你的服务器/托管商文档配置自定义域名与HTTPS。
 
 ## 🔧 自定义网站内容
 
@@ -164,10 +154,19 @@ background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
 ### 添加更多功能
 
 你可以在`src/script.js`中添加更多交互功能，比如：
-- 音乐播放
+- 音乐播放（可替换为自定义音频）
 - 更多动画效果
-- 照片展示
-- 倒计时功能
+- 照片展示（替换画廊占位为真实图片）
+- 倒计时功能（自定义目标日期）
+
+### 可配置项
+
+- 倒计时目标：在 `showCountdown()` 中将 `targetDate` 修改为你的纪念日：
+```js
+const targetDate = new Date('2026-05-20T00:00:00');
+```
+- 画廊内容：在 `showPhotoGallery()` 里将占位符替换为 `<img src="...">` 或从数组动态生成。
+- 提示信息：使用 `showNotification('你的提示')` 自定义消息。
 
 ## 📱 移动端优化
 
@@ -182,8 +181,7 @@ background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
 
 ## 📁 目录说明
 
-- **`src/`** - 网站源码目录，包含HTML、CSS、JS文件，适合GitHub Pages托管
-- **`server-deployment/`** - 服务器部署配置目录，包含Nginx配置、部署脚本等
+- **`src/`** - 网站源码目录，包含CSS、JS以及静态资产
 - **`README.md`** - 项目总体说明文档
 
 ## 🚀 部署选择
