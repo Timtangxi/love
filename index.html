@@ -77,6 +77,13 @@
             <!-- 同意/拒绝 功能区 -->
             <div class="consent-section" id="consentSection">
                 <h2 class="title" style="font-size:1.6em;margin-top:20px;">愿不愿意与我一起记录我们的故事？</h2>
+                
+                <!-- 登录提示 -->
+                <div id="loginPrompt" style="margin:15px 0;padding:15px;background:rgba(255,107,107,0.1);border-radius:10px;border:1px solid rgba(255,107,107,0.3);">
+                    <p style="margin:0 0 10px 0;color:#333;">💡 为了确保数据安全，请先登录账号</p>
+                    <button class="love-button" onclick="showLoginModal()" style="font-size:0.9em;padding:8px 16px;">登录/注册</button>
+                </div>
+                
                 <div style="display:flex;gap:12px;justify-content:center;margin:10px 0;flex-wrap:wrap;">
                     <button class="love-button" id="btnAccept">愿意</button>
                     <button class="love-button" id="btnReject" style="background:linear-gradient(45deg,#9aa0a6,#c2c5c9)">抱歉</button>

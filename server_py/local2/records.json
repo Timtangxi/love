@@ -1,78 +1,22 @@
 {
   "records": [
     {
-      "id": "rec_SSWBePiN",
-      "type": "image",
-      "title": "testdata",
-      "text": "ninon",
-      "date": "2025-09-26",
-      "mediaPath": "uploads/1758848890752_1j9tqT_Screenshot_2025-09-26-16-40-59-63_439a3fec0400f8974d35eed09a31f914.jpg",
-      "createdAt": "2025-09-26T10:08:10.754879Z",
-      "updatedAt": "2025-09-26T10:08:10.756075Z"
-    },
-    {
-      "id": "rec_-rSMcYqA",
+      "id": "rec_oeFriYgL",
       "type": "text",
-      "title": "testdata",
-      "text": "ninon",
-      "date": "2025-09-26",
-      "createdAt": "2025-09-26T10:08:15.166595Z",
-      "updatedAt": "2025-09-26T10:08:15.166656Z"
-    },
-    {
-      "id": "rec_suSYq_Jz",
-      "type": "text",
-      "title": "6",
-      "text": "，",
-      "date": "2025-09-26",
-      "createdAt": "2025-09-26T10:17:00.278778Z",
-      "updatedAt": "2025-09-26T10:17:00.278993Z"
-    },
-    {
-      "id": "rec_Fizs1oJ1",
-      "type": "video",
-      "title": "6",
-      "text": "",
-      "date": "2025-09-26",
-      "mediaPath": "uploads/1758849421670_aI-BxM_comment_1fbf2ec82be4c444e271f49cfce693dc.png",
-      "createdAt": "2025-09-26T10:17:01.671559Z",
-      "updatedAt": "2025-09-26T10:17:01.671644Z"
-    },
-    {
-      "id": "rec_Y3jC91bN",
-      "type": "text",
-      "title": "",
-      "text": "给多少人群发了你就说",
-      "date": "2025-09-26",
-      "createdAt": "2025-09-26T10:50:39.365032Z",
-      "updatedAt": "2025-09-26T10:50:39.365044Z"
-    },
-    {
-      "id": "rec_9AtJ9l-r",
-      "type": "text",
-      "title": "你你你你你你",
-      "text": "",
+      "title": "测试记录",
+      "text": "这是admin用户添加的测试记录",
       "date": "2025-09-28",
-      "createdAt": "2025-09-28T08:09:20.470460Z",
-      "updatedAt": "2025-09-28T08:09:20.470479Z"
+      "createdAt": "2025-09-28T10:36:25.614690Z",
+      "updatedAt": "2025-09-28T10:36:25.614805Z"
     },
     {
-      "id": "rec_ykvo498-",
+      "id": "rec_SBVdZl1W",
       "type": "text",
-      "title": "牛逼的图片",
-      "text": "333",
+      "title": "test用户记录",
+      "text": "这是test用户添加的测试记录",
       "date": "2025-09-28",
-      "createdAt": "2025-09-28T08:17:29.646430Z",
-      "updatedAt": "2025-09-28T08:17:29.646471Z"
-    },
-    {
-      "id": "rec_Rm4R75s2",
-      "type": "text",
-      "title": "牛逼读卡器",
-      "text": "",
-      "date": "2025-09-28",
-      "createdAt": "2025-09-28T08:18:38.058453Z",
-      "updatedAt": "2025-09-28T08:18:38.058463Z"
+      "createdAt": "2025-09-28T10:39:08.836845Z",
+      "updatedAt": "2025-09-28T10:39:08.836855Z"
     }
   ]
 }

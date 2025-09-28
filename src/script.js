@@ -97,7 +97,7 @@ function initializeAllFeatures() {
     // 初始化同意/拒绝与上传
     setupConsentAndRecords();
     
-    // 检查是否已经同意过
+    // 检查认证状态和同意状态
     checkPreviousAcceptance();
     
     // 调试：检查页面元素
@@ -637,8 +637,219 @@ function initializeAdvancedFeatures() {
 
 // 高级功能初始化已合并到主初始化函数中
 
-// ================== 同意/拒绝 + 记录上传 ==================
+// ================== 认证和权限管理 ==================
 const API_BASE = window.location.origin;
+let currentUser = null;
+let authToken = null;
+
+// 设备指纹生成
+function generateDeviceFingerprint() {
+    const userAgent = navigator.userAgent;
+    const screenRes = `${screen.width}x${screen.height}`;
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const language = navigator.language;
+    
+    const fingerprintData = `${userAgent}_${screenRes}_${timezone}_${language}`;
+    
+    // 简单的哈希函数
+    let hash = 0;
+    for (let i = 0; i < fingerprintData.length; i++) {
+        const char = fingerprintData.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // 转换为32位整数
+    }
+    
+    return Math.abs(hash).toString(16).substring(0, 16);
+}
+
+// 检查用户认证状态
+async function checkAuthStatus() {
+    const savedToken = localStorage.getItem('auth_token');
+    const savedUser = localStorage.getItem('current_user');
+    
+    if (savedToken && savedUser) {
+        try {
+            const response = await fetch(`${API_BASE}/api/auth/verify`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    token: savedToken
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.ok && data.user) {
+                // 验证成功，更新用户信息
+                authToken = savedToken;
+                currentUser = data.user; // 使用服务器返回的最新用户信息
+                console.log('Token验证成功，用户已登录:', currentUser.username);
+                return true;
+            } else {
+                // Token无效或过期，清除本地存储
+                console.log('Token验证失败，清除本地存储');
+                localStorage.removeItem('auth_token');
+                localStorage.removeItem('current_user');
+                authToken = '';
+                currentUser = null;
+            }
+        } catch (error) {
+            console.error('验证token失败:', error);
+            // 网络错误时也清除本地存储，确保安全
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('current_user');
+            authToken = '';
+            currentUser = null;
+        }
+    }
+    
+    return false;
+}
+
+// 用户注册
+async function registerUser(username, password, email = '') {
+    try {
+        const deviceFingerprint = generateDeviceFingerprint();
+        
+        const response = await fetch(`${API_BASE}/api/auth/register`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username: username,
+                password: password,
+                email: email,
+                screen_resolution: `${screen.width}x${screen.height}`
+            })
+        });
+        
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        return { error: '网络错误' };
+    }
+}
+
+// 用户登录
+async function loginUser(username, password) {
+    try {
+        const deviceFingerprint = generateDeviceFingerprint();
+        
+        const response = await fetch(`${API_BASE}/api/auth/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username: username,
+                password: password,
+                screen_resolution: `${screen.width}x${screen.height}`
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.ok) {
+            authToken = data.user.token || 'user_token'; // 临时token
+            currentUser = data.user;
+            
+            // 保存到本地存储
+            localStorage.setItem('auth_token', authToken);
+            localStorage.setItem('current_user', JSON.stringify(currentUser));
+            
+            return { success: true, user: currentUser };
+        } else {
+            return { success: false, error: data.error };
+        }
+    } catch (error) {
+        return { success: false, error: '网络错误' };
+    }
+}
+
+// 检查设备访问权限
+async function checkDeviceAccess(username) {
+    try {
+        const deviceFingerprint = generateDeviceFingerprint();
+        
+        const response = await fetch(`${API_BASE}/api/auth/check-device`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username: username,
+                screen_resolution: `${screen.width}x${screen.height}`
+            })
+        });
+        
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        return { ok: false, message: '网络错误' };
+    }
+}
+
+// 设置同意时间
+async function setAcceptanceTime(acceptanceTime) {
+    if (!authToken) return false;
+    
+    try {
+        const response = await fetch(`${API_BASE}/api/auth/set-acceptance`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                token: authToken,
+                acceptance_time: acceptanceTime
+            })
+        });
+        
+        const data = await response.json();
+        return data.ok;
+    } catch (error) {
+        return false;
+    }
+}
+
+// 获取同意时间
+async function getAcceptanceTime() {
+    if (!authToken) return null;
+    
+    try {
+        const response = await fetch(`${API_BASE}/api/auth/get-acceptance`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                token: authToken
+            })
+        });
+        
+        const data = await response.json();
+        return data.acceptance_time;
+    } catch (error) {
+        return null;
+    }
+}
+
+// 登出
+function logout() {
+    authToken = null;
+    currentUser = null;
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('current_user');
+    localStorage.removeItem('love_acceptance_time'); // 清除旧的本地存储
+    
+    // 重新加载页面
+    location.reload();
+}
+
+// ================== 同意/拒绝 + 记录上传 ==================
 
 function setupConsentAndRecords() {
     const consentSection = document.getElementById('consentSection');
@@ -665,31 +876,52 @@ function setupConsentAndRecords() {
     // 存储同意时间到localStorage
     const ACCEPTANCE_KEY = 'love_acceptance_time';
     
-    btnAccept && btnAccept.addEventListener('click', () => {
+    btnAccept && btnAccept.addEventListener('click', async () => {
         try {
             console.log('同意按钮被点击');
             
-            // 隐藏其他区域
-            if (consentSection) consentSection.classList.add('hidden');
-            if (retentionSection) retentionSection.classList.add('hidden');
-            
-            // 显示同意后的区域
-            if (acceptedSection) {
-                acceptedSection.classList.remove('hidden');
-                console.log('已显示同意后区域');
-            } else {
-                console.error('找不到acceptedSection元素');
+            // 检查是否已登录
+            if (!currentUser) {
+                showNotification('请先登录后再进行操作');
+                showLoginModal();
+                return;
             }
             
-            // 记录同意时间
+            // 检查是否已经同意过
+            const existingAcceptanceTime = await getAcceptanceTime();
+            if (existingAcceptanceTime) {
+                showNotification('您已经同意过了，无需重复操作');
+                return;
+            }
+            
+            // 记录同意时间到服务器
             const acceptanceTime = new Date().toISOString();
-            localStorage.setItem(ACCEPTANCE_KEY, acceptanceTime);
-            console.log('已保存同意时间:', acceptanceTime);
+            const success = await setAcceptanceTime(acceptanceTime);
             
-            // 启动计时器
-            startLoveTimer();
-            
-            showNotification('谢谢你愿意，我们一起记录吧 💕');
+            if (success) {
+                // 隐藏其他区域
+                if (consentSection) consentSection.classList.add('hidden');
+                if (retentionSection) retentionSection.classList.add('hidden');
+                
+                // 显示同意后的区域
+                if (acceptedSection) {
+                    acceptedSection.classList.remove('hidden');
+                    console.log('已显示同意后区域');
+                } else {
+                    console.error('找不到acceptedSection元素');
+                }
+                
+                // 同时保存到本地存储作为备份
+                localStorage.setItem(ACCEPTANCE_KEY, acceptanceTime);
+                console.log('已保存同意时间:', acceptanceTime);
+                
+                // 启动计时器
+                startLoveTimer();
+                
+                showNotification('谢谢你愿意，我们一起记录吧 💕');
+            } else {
+                showNotification('保存失败，请重试');
+            }
         } catch (error) {
             console.error('同意按钮点击时发生错误:', error);
             showNotification('发生错误，请刷新页面重试');
@@ -760,6 +992,18 @@ function setupConsentAndRecords() {
         showNotification('欢迎回来，我们继续 💖');
     });
 
+    // 选择文件后自动识别类型并同步选择框
+    const fileInputAuto = document.getElementById('recFile');
+    const typeSelect = document.getElementById('recType');
+    if (fileInputAuto && typeSelect) {
+        fileInputAuto.addEventListener('change', () => {
+            const f = fileInputAuto.files && fileInputAuto.files[0];
+            if (!f) return;
+            const isVideo = (f.type || '').startsWith('video/');
+            typeSelect.value = isVideo ? 'video' : 'image';
+        });
+    }
+
     btnSaveText && btnSaveText.addEventListener('click', async () => {
         const title = document.getElementById('recTitle').value.trim();
         const text = document.getElementById('recText').value.trim();
@@ -780,9 +1024,19 @@ function setupConsentAndRecords() {
         }
         
         try {
+            // 检查用户认证状态
+            if (!currentUser || !authToken) {
+                showNotification('请先登录后再添加记录');
+                showLoginModal();
+                return;
+            }
+            
             const res = await fetch(`${API_BASE}/api/records/text`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`
+                },
                 body: JSON.stringify({ title, text, date })
             });
             const data = await res.json();
@@ -803,7 +1057,7 @@ function setupConsentAndRecords() {
         const title = document.getElementById('recTitle').value.trim();
         const text = document.getElementById('recText').value.trim();
         const date = document.getElementById('recDate').value;
-        const type = document.getElementById('recType').value;
+        const selectedType = document.getElementById('recType').value;
         
         if (!fileInput.files || fileInput.files.length === 0) {
             showNotification('请选择图片或视频');
@@ -819,7 +1073,7 @@ function setupConsentAndRecords() {
         }
         
         // 文件类型检查
-        const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp', 'video/mp4', 'video/webm', 'video/quicktime'];
+        const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp', 'video/mp4', 'video/webm', 'video/quicktime', 'video/ogg', 'video/x-matroska'];
         if (!allowedTypes.includes(file.type)) {
             showNotification('不支持的文件类型，请选择图片或视频');
             return;
@@ -840,14 +1094,30 @@ function setupConsentAndRecords() {
         form.append('title', title);
         form.append('text', text);
         form.append('date', date);
-        form.append('type', type);
+        // 最终类型以文件MIME为准，避免用户忘记切换
+        const finalType = (file.type || '').startsWith('video/') ? 'video' : 'image';
+        form.append('type', finalType);
         
         try {
+            // 检查用户认证状态
+            if (!currentUser || !authToken) {
+                showNotification('请先登录后再上传文件');
+                showLoginModal();
+                return;
+            }
+            
             const res = await fetch(`${API_BASE}/api/records/media`, {
                 method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${authToken}`
+                },
                 body: form
             });
             const data = await res.json();
+            if (data.error === 'duplicate') {
+                showNotification('重复上传：该内容已存在');
+                return;
+            }
             if (data.ok) {
                 showNotification('已上传到服务端本地2');
                 fileInput.value = '';
@@ -932,7 +1202,17 @@ async function loadRecordsList() {
     if (!recordsList) return;
     
     try {
-        const res = await fetch(`${API_BASE}/api/records`);
+        // 检查用户认证状态
+        if (!currentUser || !authToken) {
+            recordsList.innerHTML = '<div style="text-align:center;color:#ff6b6b;padding:20px;">请先登录才能查看记录</div>';
+            return;
+        }
+        
+        const res = await fetch(`${API_BASE}/api/records`, {
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        });
         const data = await res.json();
         
         if (data.records && data.records.length > 0) {
@@ -944,19 +1224,46 @@ async function loadRecordsList() {
                 const safeCreatedAt = escapeHtml(new Date(record.createdAt).toLocaleDateString());
                 
                 return `
-                    <div class="record-item" style="border:1px solid #eee;border-radius:10px;padding:15px;margin-bottom:10px;cursor:pointer;" onclick="showRecordDetail('${safeId}')">
-                        <div style="display:flex;justify-content:space-between;align-items:center;">
-                            <div>
-                                <strong style="color:#333;">${safeTitle}</strong>
-                                <div style="font-size:0.9em;color:#666;margin-top:5px;">
-                                    ${safeDate} • ${record.type === 'text' ? '📝' : record.type === 'image' ? '🖼️' : '🎥'}
+                    <div class="record-item" style="border:1px solid #eee;border-radius:10px;padding:15px;margin-bottom:10px;">
+                        <div class="record-summary" style="cursor:pointer;" onclick="toggleRecordDetail('${safeId}')">
+                            <div style="display:flex;justify-content:space-between;align-items:center;">
+                                <div>
+                                    <strong style="color:#333;">${safeTitle}</strong>
+                                    <div style="font-size:0.9em;color:#666;margin-top:5px;">
+                                        ${safeDate} • ${record.type === 'text' ? '📝' : record.type === 'image' ? '🖼️' : '🎥'}
+                                    </div>
+                                </div>
+                                <div style="font-size:0.8em;color:#999;">
+                                    ${safeCreatedAt}
                                 </div>
                             </div>
-                            <div style="font-size:0.8em;color:#999;">
-                                ${safeCreatedAt}
+                            ${safeText ? `<div style="margin-top:8px;color:#555;font-size:0.9em;">${safeText}</div>` : ''}
+                        </div>
+                        <div class="record-detail" id="detail-${safeId}" style="display:none;margin-top:15px;padding-top:15px;border-top:1px solid #eee;">
+                            <div style="color:#666;margin-bottom:10px;">
+                                <strong>日期：</strong>${safeDate}
+                            </div>
+                            ${record.text ? `<div style="margin-bottom:15px;line-height:1.6;color:#333;">${escapeHtml(record.text)}</div>` : ''}
+                            ${record.mediaPath ? `<div style="margin-bottom:15px;">
+                                ${record.type === 'image' ? 
+                                    `<img src="${API_BASE}/storage/${record.mediaPath}" style="max-width:100%;border-radius:10px;" alt="图片">` : 
+                                    `<video src="${API_BASE}/storage/${record.mediaPath}" controls preload="metadata" style="max-width:100%;border-radius:10px;max-height:300px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                        <p>您的浏览器不支持视频播放</p>
+                                        <div style="display:none;padding:20px;text-align:center;color:#ff6b6b;border:2px dashed #ff6b6b;border-radius:10px;">
+                                            <p>视频加载失败</p>
+                                            <p style="font-size:0.9em;color:#666;">请检查文件是否存在或网络连接</p>
+                                        </div>
+                                    </video>`
+                                }
+                            </div>` : ''}
+                            <div style="font-size:0.9em;color:#999;margin-bottom:10px;">
+                                创建时间：${escapeHtml(new Date(record.createdAt).toLocaleString())}
+                            </div>
+                            <div style="display:flex;gap:10px;">
+                                <button class="love-button" onclick="toggleRecordDetail('${safeId}')" style="font-size:0.9em;padding:8px 16px;">收起详情</button>
+                                <button class="love-button" onclick="deleteRecord('${safeId}')" style="font-size:0.9em;padding:8px 16px;background:#ff6b6b;">删除记录</button>
                             </div>
                         </div>
-                        ${safeText ? `<div style="margin-top:8px;color:#555;font-size:0.9em;">${safeText}</div>` : ''}
                     </div>
                 `;
             }).join('');
@@ -965,6 +1272,41 @@ async function loadRecordsList() {
         }
     } catch (e) {
         recordsList.innerHTML = '<div style="text-align:center;color:#ff6b6b;padding:20px;">加载失败，请检查网络连接</div>';
+    }
+}
+
+// 删除记录
+async function deleteRecord(recordId) {
+    try {
+        // 检查用户认证状态
+        if (!currentUser || !authToken) {
+            showNotification('请先登录才能删除记录');
+            showLoginModal();
+            return;
+        }
+        
+        // 确认删除
+        if (!confirm('确定要删除这条记录吗？此操作不可恢复。')) {
+            return;
+        }
+        
+        const res = await fetch(`${API_BASE}/api/records/${recordId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        });
+        
+        const data = await res.json();
+        if (data.ok) {
+            showNotification('记录已删除');
+            // 重新加载记录列表
+            loadRecordsList();
+        } else {
+            showNotification('删除失败: ' + (data.error || '未知错误'));
+        }
+    } catch (e) {
+        showNotification('网络错误');
     }
 }
 
@@ -984,15 +1326,51 @@ function debugPageElements() {
 }
 
 // 检查是否已经同意过
-function checkPreviousAcceptance() {
+async function checkPreviousAcceptance() {
     try {
+        console.log('检查之前的同意状态');
+        
+        // 首先检查认证状态
+        const isAuthenticated = await checkAuthStatus();
+        
+        if (isAuthenticated && currentUser) {
+            // 用户已登录，从服务器获取同意时间
+            const serverAcceptanceTime = await getAcceptanceTime();
+            
+            if (serverAcceptanceTime) {
+                // 服务器有同意记录，显示同意后的界面
+                const consentSection = document.getElementById('consentSection');
+                const acceptedSection = document.getElementById('acceptedSection');
+                
+                if (consentSection) {
+                    consentSection.classList.add('hidden');
+                    console.log('隐藏同意区域');
+                }
+                if (acceptedSection) {
+                    acceptedSection.classList.remove('hidden');
+                    console.log('显示同意后区域');
+                }
+                
+                // 同步到本地存储
+                localStorage.setItem(ACCEPTANCE_KEY, serverAcceptanceTime);
+                
+                // 启动计时器
+                startLoveTimer();
+                return;
+            }
+        }
+        
+        // 检查本地存储（兼容旧版本）
         const ACCEPTANCE_KEY = 'love_acceptance_time';
-        const acceptanceTime = localStorage.getItem(ACCEPTANCE_KEY);
+        const localAcceptanceTime = localStorage.getItem(ACCEPTANCE_KEY);
         
-        console.log('检查之前的同意状态:', acceptanceTime);
-        
-        if (acceptanceTime) {
-            // 已经同意过，直接显示同意后的界面
+        if (localAcceptanceTime && isAuthenticated && currentUser) {
+            console.log('找到本地同意记录:', localAcceptanceTime);
+            
+            // 如果用户已登录，同步到服务器
+            await setAcceptanceTime(localAcceptanceTime);
+            
+            // 显示同意后的界面
             const consentSection = document.getElementById('consentSection');
             const acceptedSection = document.getElementById('acceptedSection');
             
@@ -1008,70 +1386,445 @@ function checkPreviousAcceptance() {
             // 启动计时器
             startLoveTimer();
         } else {
-            console.log('没有找到之前的同意记录');
+            console.log('没有找到之前的同意记录或用户未登录');
+            
+            // 如果用户已登录但没有同意记录，显示登录状态
+            if (isAuthenticated && currentUser) {
+                showUserStatus();
+            } else {
+                // 用户未登录，显示同意/拒绝界面
+                console.log('用户未登录，显示同意/拒绝界面');
+            }
         }
     } catch (error) {
         console.error('检查之前同意状态时发生错误:', error);
     }
 }
 
-// 显示记录详情
-async function showRecordDetail(recordId) {
-    const modal = document.getElementById('recordDetailModal');
-    const content = document.getElementById('recordDetailContent');
-    if (!modal || !content) return;
+// 切换记录详情显示/隐藏
+let currentOpenDetailId = null;
+
+function toggleRecordDetail(recordId) {
+    const detailElement = document.getElementById(`detail-${recordId}`);
+    if (!detailElement) return;
     
-    try {
-        const res = await fetch(`${API_BASE}/api/records`);
-        const data = await res.json();
-        const record = data.records.find(r => r.id === recordId);
+    // 若有其它已展开，先关闭
+    if (currentOpenDetailId && currentOpenDetailId !== recordId) {
+        const opened = document.getElementById(`detail-${currentOpenDetailId}`);
+        if (opened) {
+            opened.style.opacity = '0';
+            opened.style.transform = 'translateY(-10px)';
+            setTimeout(() => { 
+                opened.style.display = 'none';
+                console.log(`已关闭详情: ${currentOpenDetailId}`);
+            }, 300);
+        }
+    }
+
+    if (detailElement.style.display === 'none' || detailElement.style.display === '') {
+        detailElement.style.display = 'block';
+        // 添加展开动画效果
+        detailElement.style.opacity = '0';
+        detailElement.style.transform = 'translateY(-10px)';
+        detailElement.style.transition = 'all 0.3s ease';
         
-        if (!record) {
-            showNotification('记录不存在');
+        setTimeout(() => {
+            detailElement.style.opacity = '1';
+            detailElement.style.transform = 'translateY(0)';
+        }, 10);
+        currentOpenDetailId = recordId;
+        console.log(`已打开详情: ${recordId}`);
+    } else {
+        // 添加收起动画效果
+        detailElement.style.opacity = '0';
+        detailElement.style.transform = 'translateY(-10px)';
+        
+        setTimeout(() => {
+            detailElement.style.display = 'none';
+        }, 300);
+        if (currentOpenDetailId === recordId) {
+            currentOpenDetailId = null;
+            console.log(`已关闭详情: ${recordId}`);
+        }
+    }
+}
+
+// 供内联事件调用
+window.toggleRecordDetail = toggleRecordDetail;
+
+// ================== 登录注册模态框 ==================
+function createAuthModal() {
+    // 创建模态框HTML
+    const modalHTML = `
+        <div id="authModal" class="auth-modal hidden">
+            <div class="auth-modal-content">
+                <span class="close-auth-modal" id="closeAuthModal">&times;</span>
+                <div class="auth-tabs">
+                    <div class="auth-tab active" data-tab="login">登录</div>
+                    <div class="auth-tab" data-tab="register">注册</div>
+                </div>
+                
+                <!-- 登录表单 -->
+                <div class="auth-form active" id="loginForm">
+                    <h3>用户登录</h3>
+                    <form id="loginFormElement">
+                        <div class="form-group">
+                            <label for="loginUsername">用户名</label>
+                            <input type="text" id="loginUsername" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="loginPassword">密码</label>
+                            <input type="password" id="loginPassword" required>
+                        </div>
+                        <button type="submit" class="btn">登录</button>
+                    </form>
+                    <div class="auth-message" id="loginMessage"></div>
+                </div>
+                
+                <!-- 注册表单 -->
+                <div class="auth-form" id="registerForm">
+                    <h3>用户注册</h3>
+                    <form id="registerFormElement">
+                        <div class="form-group">
+                            <label for="registerUsername">用户名</label>
+                            <input type="text" id="registerUsername" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="registerPassword">密码</label>
+                            <input type="password" id="registerPassword" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="registerEmail">邮箱（可选）</label>
+                            <input type="email" id="registerEmail">
+                        </div>
+                        <button type="submit" class="btn">注册</button>
+                    </form>
+                    <div class="auth-message" id="registerMessage"></div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // 添加样式
+    const styleHTML = `
+        <style>
+            .auth-modal {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                z-index: 10000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .auth-modal.hidden {
+                display: none;
+            }
+            
+            .auth-modal-content {
+                background: white;
+                border-radius: 15px;
+                padding: 30px;
+                max-width: 400px;
+                width: 90%;
+                position: relative;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            }
+            
+            .close-auth-modal {
+                position: absolute;
+                top: 15px;
+                right: 20px;
+                font-size: 24px;
+                cursor: pointer;
+                color: #999;
+            }
+            
+            .close-auth-modal:hover {
+                color: #333;
+            }
+            
+            .auth-tabs {
+                display: flex;
+                border-bottom: 2px solid #eee;
+                margin-bottom: 20px;
+            }
+            
+            .auth-tab {
+                padding: 10px 20px;
+                cursor: pointer;
+                border-bottom: 3px solid transparent;
+                transition: all 0.3s;
+            }
+            
+            .auth-tab.active {
+                border-bottom-color: #ff6b6b;
+                color: #ff6b6b;
+                font-weight: 500;
+            }
+            
+            .auth-form {
+                display: none;
+            }
+            
+            .auth-form.active {
+                display: block;
+            }
+            
+            .auth-form h3 {
+                margin-bottom: 20px;
+                color: #333;
+                text-align: center;
+            }
+            
+            .auth-form .form-group {
+                margin-bottom: 15px;
+            }
+            
+            .auth-form label {
+                display: block;
+                margin-bottom: 5px;
+                color: #333;
+                font-weight: 500;
+            }
+            
+            .auth-form input {
+                width: 100%;
+                padding: 12px;
+                border: 2px solid #ddd;
+                border-radius: 8px;
+                font-size: 16px;
+                transition: border-color 0.3s;
+            }
+            
+            .auth-form input:focus {
+                outline: none;
+                border-color: #ff6b6b;
+            }
+            
+            .auth-form .btn {
+                width: 100%;
+                background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+                color: white;
+                border: none;
+                padding: 12px;
+                border-radius: 8px;
+                font-size: 16px;
+                cursor: pointer;
+                transition: transform 0.2s;
+            }
+            
+            .auth-form .btn:hover {
+                transform: translateY(-2px);
+            }
+            
+            .auth-message {
+                margin-top: 15px;
+                padding: 10px;
+                border-radius: 5px;
+                display: none;
+            }
+            
+            .auth-message.success {
+                background: #d4edda;
+                color: #155724;
+                border: 1px solid #c3e6cb;
+            }
+            
+            .auth-message.error {
+                background: #f8d7da;
+                color: #721c24;
+                border: 1px solid #f5c6cb;
+            }
+        </style>
+    `;
+    
+    // 添加到页面
+    document.head.insertAdjacentHTML('beforeend', styleHTML);
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // 绑定事件
+    setupAuthModalEvents();
+}
+
+function setupAuthModalEvents() {
+    const modal = document.getElementById('authModal');
+    const closeBtn = document.getElementById('closeAuthModal');
+    const tabs = document.querySelectorAll('.auth-tab');
+    const loginForm = document.getElementById('loginFormElement');
+    const registerForm = document.getElementById('registerFormElement');
+    
+    // 关闭模态框
+    closeBtn.addEventListener('click', hideLoginModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) hideLoginModal();
+    });
+    
+    // 标签页切换
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            
+            const tabId = tab.getAttribute('data-tab');
+            document.querySelectorAll('.auth-form').forEach(form => {
+                form.classList.remove('active');
+            });
+            document.getElementById(tabId + 'Form').classList.add('active');
+        });
+    });
+    
+    // 登录表单提交
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const username = document.getElementById('loginUsername').value.trim();
+        const password = document.getElementById('loginPassword').value;
+        
+        if (!username || !password) {
+            showAuthMessage('loginMessage', '请填写用户名和密码', 'error');
             return;
         }
         
-        let mediaHtml = '';
-        if (record.mediaPath) {
-            const mediaUrl = `${API_BASE}/storage/${record.mediaPath}`;
-            if (record.type === 'image') {
-                mediaHtml = `<img src="${mediaUrl}" style="max-width:100%;border-radius:10px;margin-top:10px;" alt="图片">`;
-            } else if (record.type === 'video') {
-                mediaHtml = `<video src="${mediaUrl}" controls preload="metadata" style="max-width:100%;border-radius:10px;margin-top:10px;max-height:400px;">
-                    <p>您的浏览器不支持视频播放</p>
-                </video>`;
-            }
+        const result = await loginUser(username, password);
+        
+        if (result.success) {
+            showAuthMessage('loginMessage', '登录成功！', 'success');
+            setTimeout(() => {
+                hideLoginModal();
+                showUserStatus();
+                // 重新检查同意状态
+                checkPreviousAcceptance();
+            }, 1500); // 增加延迟时间，确保用户能看到成功消息
+        } else {
+            showAuthMessage('loginMessage', result.error || '登录失败', 'error');
+        }
+    });
+    
+    // 注册表单提交
+    registerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const username = document.getElementById('registerUsername').value.trim();
+        const password = document.getElementById('registerPassword').value;
+        const email = document.getElementById('registerEmail').value.trim();
+        
+        if (!username || !password) {
+            showAuthMessage('registerMessage', '请填写用户名和密码', 'error');
+            return;
         }
         
-        content.innerHTML = `
-            <h3 style="color:#333;margin-bottom:15px;">${escapeHtml(record.title || '无标题')}</h3>
-            <div style="color:#666;margin-bottom:10px;">
-                <strong>日期：</strong>${escapeHtml(record.date)}
-            </div>
-            ${record.text ? `<div style="margin-bottom:15px;line-height:1.6;">${escapeHtml(record.text)}</div>` : ''}
-            ${mediaHtml}
-            <div style="margin-top:15px;font-size:0.9em;color:#999;">
-                创建时间：${escapeHtml(new Date(record.createdAt).toLocaleString())}
-            </div>
-        `;
+        if (username.length < 3) {
+            showAuthMessage('registerMessage', '用户名至少3个字符', 'error');
+            return;
+        }
         
+        if (password.length < 6) {
+            showAuthMessage('registerMessage', '密码至少6个字符', 'error');
+            return;
+        }
+        
+        const result = await registerUser(username, password, email);
+        
+        if (result.ok) {
+            showAuthMessage('registerMessage', '注册成功！请登录', 'success');
+            // 切换到登录标签页
+            setTimeout(() => {
+                tabs.forEach(t => t.classList.remove('active'));
+                document.querySelector('.auth-tab[data-tab="login"]').classList.add('active');
+                document.querySelectorAll('.auth-form').forEach(form => {
+                    form.classList.remove('active');
+                });
+                document.getElementById('loginForm').classList.add('active');
+                
+                // 清空注册表单
+                registerForm.reset();
+            }, 1000);
+        } else {
+            showAuthMessage('registerMessage', result.error || '注册失败', 'error');
+        }
+    });
+}
+
+function showLoginModal() {
+    const modal = document.getElementById('authModal');
+    if (modal) {
         modal.classList.remove('hidden');
-        
-        // 关闭按钮事件
-        document.getElementById('closeDetailModal').onclick = () => {
-            modal.classList.add('hidden');
-        };
-        
-        // 点击背景关闭
-        modal.onclick = (e) => {
-            if (e.target === modal) {
-                modal.classList.add('hidden');
-            }
-        };
-        
-    } catch (e) {
-        showNotification('加载详情失败');
+    } else {
+        createAuthModal();
+        setTimeout(() => {
+            document.getElementById('authModal').classList.remove('hidden');
+        }, 100);
     }
+}
+
+function hideLoginModal() {
+    const modal = document.getElementById('authModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        // 清除表单内容
+        const loginForm = document.getElementById('loginFormElement');
+        const registerForm = document.getElementById('registerFormElement');
+        if (loginForm) loginForm.reset();
+        if (registerForm) registerForm.reset();
+        // 清除消息
+        const loginMessage = document.getElementById('loginMessage');
+        const registerMessage = document.getElementById('registerMessage');
+        if (loginMessage) loginMessage.textContent = '';
+        if (registerMessage) registerMessage.textContent = '';
+    }
+}
+
+function showAuthMessage(elementId, message, type) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.textContent = message;
+        element.className = `auth-message ${type}`;
+        element.style.display = 'block';
+        
+        setTimeout(() => {
+            element.style.display = 'none';
+        }, 5000);
+    }
+}
+
+function showUserStatus() {
+    if (!currentUser) return;
+    
+    // 隐藏登录提示
+    const loginPrompt = document.getElementById('loginPrompt');
+    if (loginPrompt) {
+        loginPrompt.style.display = 'none';
+    }
+    
+    // 在页面顶部显示用户状态
+    let userStatusDiv = document.getElementById('userStatus');
+    if (!userStatusDiv) {
+        userStatusDiv = document.createElement('div');
+        userStatusDiv.id = 'userStatus';
+        userStatusDiv.style.cssText = `
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 107, 107, 0.9);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        `;
+        document.body.appendChild(userStatusDiv);
+    }
+    
+    userStatusDiv.innerHTML = `
+        <span>欢迎，${currentUser.username}</span>
+        <button onclick="logout()" style="margin-left: 10px; background: none; border: 1px solid white; color: white; padding: 2px 8px; border-radius: 10px; cursor: pointer;">退出</button>
+    `;
 }
 
 // 添加CSS动画样式（高级功能的补充样式，避免与上方变量名冲突）
