@@ -99,6 +99,10 @@ def login():
         username = body.get('username', '').strip()
         password = body.get('password', '')
         
+        # 阻止root用户通过普通登录接口登录
+        if username == 'root':
+            return jsonify({"error": "root用户请使用管理员登录页面"}), 401
+        
         # 获取设备指纹
         user_agent = request.headers.get('User-Agent', '')
         ip = request.remote_addr
@@ -115,6 +119,29 @@ def login():
         app.logger.error(f"Error in login: {str(e)}")
         return jsonify({"error": "服务器错误"}), 500
 
+@app.route('/api/admin/login', methods=['POST'])
+def admin_login():
+    try:
+        body = request.get_json(force=True, silent=True) or {}
+        username = body.get('username', '').strip()
+        password = body.get('password', '')
+        
+        # 获取设备指纹
+        user_agent = request.headers.get('User-Agent', '')
+        ip = request.remote_addr
+        screen_res = body.get('screen_resolution', '')
+        device_fingerprint = auth_manager.generate_device_fingerprint(user_agent, ip, screen_res)
+        
+        success, message, user_info = auth_manager.admin_login(username, password, device_fingerprint)
+        if success:
+            return jsonify({"ok": True, "message": message, "user": user_info})
+        else:
+            return jsonify({"error": message}), 401
+            
+    except Exception as e:
+        app.logger.error(f"Error in admin_login: {str(e)}")
+        return jsonify({"error": "服务器错误"}), 500
+
 @app.route('/api/auth/verify', methods=['POST'])
 def verify_token():
     try:
@@ -124,7 +151,7 @@ def verify_token():
         if not token:
             return jsonify({"error": "缺少token"}), 400
         
-        success, user_info = auth_manager.verify_token(token)
+        success, user_info = auth_manager.verify_admin_token(token)
         if success:
             return jsonify({"ok": True, "user": user_info})
         else:
@@ -163,7 +190,7 @@ def set_acceptance():
         if not token:
             return jsonify({"error": "缺少token"}), 400
         
-        success, user_info = auth_manager.verify_token(token)
+        success, user_info = auth_manager.verify_admin_token(token)
         if not success:
             return jsonify({"error": "token无效"}), 401
         
@@ -185,7 +212,7 @@ def get_acceptance():
         if not token:
             return jsonify({"error": "缺少token"}), 400
         
-        success, user_info = auth_manager.verify_token(token)
+        success, user_info = auth_manager.verify_admin_token(token)
         if not success:
             return jsonify({"error": "token无效"}), 401
         
@@ -224,7 +251,7 @@ def admin_get_users():
         if not token:
             return jsonify({"error": "缺少认证token"}), 401
         
-        success, user_info = auth_manager.verify_token(token)
+        success, user_info = auth_manager.verify_admin_token(token)
         if not success or not user_info.get('is_admin'):
             return jsonify({"error": "需要管理员权限"}), 403
         
@@ -243,7 +270,7 @@ def admin_manage_whitelist():
         if not token:
             return jsonify({"error": "缺少认证token"}), 401
         
-        success, user_info = auth_manager.verify_token(token)
+        success, user_info = auth_manager.verify_admin_token(token)
         if not success or not user_info.get('is_admin'):
             return jsonify({"error": "需要管理员权限"}), 403
         
@@ -253,6 +280,10 @@ def admin_manage_whitelist():
         
         if not username:
             return jsonify({"error": "缺少用户名"}), 400
+        
+        # 保护root用户：不允许将root添加到白名单
+        if username == 'root':
+            return jsonify({"error": "无法管理root用户"}), 403
         
         if action == 'add':
             success = auth_manager.add_to_whitelist(username)
@@ -277,7 +308,7 @@ def admin_manage_blacklist():
         if not token:
             return jsonify({"error": "缺少认证token"}), 401
         
-        success, user_info = auth_manager.verify_token(token)
+        success, user_info = auth_manager.verify_admin_token(token)
         if not success or not user_info.get('is_admin'):
             return jsonify({"error": "需要管理员权限"}), 403
         
@@ -287,6 +318,10 @@ def admin_manage_blacklist():
         
         if not username:
             return jsonify({"error": "缺少用户名"}), 400
+        
+        # 保护root用户：不允许将root添加到黑名单
+        if username == 'root':
+            return jsonify({"error": "无法管理root用户"}), 403
         
         if action == 'add':
             success = auth_manager.add_to_blacklist(username)
@@ -311,7 +346,7 @@ def admin_update_user_status():
         if not token:
             return jsonify({"error": "缺少认证token"}), 401
         
-        success, user_info = auth_manager.verify_token(token)
+        success, user_info = auth_manager.verify_admin_token(token)
         if not success or not user_info.get('is_admin'):
             return jsonify({"error": "需要管理员权限"}), 403
         
@@ -321,6 +356,10 @@ def admin_update_user_status():
         
         if not username or status not in ['active', 'inactive']:
             return jsonify({"error": "无效的参数"}), 400
+        
+        # 特别保护root用户：不允许禁用root用户
+        if username == 'root' and status == 'inactive':
+            return jsonify({"error": "无法禁用root用户"}), 403
         
         success = auth_manager.update_user_status(username, status)
         if success:
@@ -346,7 +385,7 @@ def admin_get_whitelist():
         if not token:
             return jsonify({"error": "缺少认证token"}), 401
         
-        success, user_info = auth_manager.verify_token(token)
+        success, user_info = auth_manager.verify_admin_token(token)
         if not success or not user_info.get('is_admin'):
             return jsonify({"error": "需要管理员权限"}), 403
         
@@ -365,7 +404,7 @@ def admin_get_blacklist():
         if not token:
             return jsonify({"error": "缺少认证token"}), 401
         
-        success, user_info = auth_manager.verify_token(token)
+        success, user_info = auth_manager.verify_admin_token(token)
         if not success or not user_info.get('is_admin'):
             return jsonify({"error": "需要管理员权限"}), 403
         
@@ -384,7 +423,7 @@ def admin_get_admins():
         if not token:
             return jsonify({"error": "缺少认证token"}), 401
         
-        success, user_info = auth_manager.verify_token(token)
+        success, user_info = auth_manager.verify_admin_token(token)
         if not success or not user_info.get('is_admin'):
             return jsonify({"error": "需要管理员权限"}), 403
         
@@ -403,7 +442,7 @@ def admin_manage_admins():
         if not token:
             return jsonify({"error": "缺少认证token"}), 401
         
-        success, user_info = auth_manager.verify_token(token)
+        success, user_info = auth_manager.verify_admin_token(token)
         if not success or not user_info.get('is_admin'):
             return jsonify({"error": "需要管理员权限"}), 403
         
@@ -413,6 +452,10 @@ def admin_manage_admins():
         
         if not username:
             return jsonify({"error": "缺少用户名"}), 400
+        
+        # 保护root用户：不允许添加或移除root的管理员权限
+        if username == 'root':
+            return jsonify({"error": "root用户是系统内置管理员，无法管理"}), 403
         
         if action == 'add':
             success = auth_manager.add_admin(username)
@@ -437,7 +480,7 @@ def admin_kick_user():
         if not token:
             return jsonify({"error": "缺少认证token"}), 401
         
-        success, user_info = auth_manager.verify_token(token)
+        success, user_info = auth_manager.verify_admin_token(token)
         if not success or not user_info.get('is_admin'):
             return jsonify({"error": "需要管理员权限"}), 403
         
@@ -472,7 +515,7 @@ def admin_cleanup_sessions():
         if not token:
             return jsonify({"error": "缺少认证token"}), 401
         
-        success, user_info = auth_manager.verify_token(token)
+        success, user_info = auth_manager.verify_admin_token(token)
         if not success or not user_info.get('is_admin'):
             return jsonify({"error": "需要管理员权限"}), 403
         
@@ -493,7 +536,7 @@ def list_records():
         if not token:
             return jsonify({"error": "需要登录才能查看记录"}), 401
         
-        success, user_info = auth_manager.verify_token(token)
+        success, user_info = auth_manager.verify_admin_token(token)
         if not success:
             return jsonify({"error": "认证失败，请重新登录"}), 401
         
@@ -511,7 +554,7 @@ def add_text():
         if not token:
             return jsonify({"error": "需要登录才能添加记录"}), 401
         
-        success, user_info = auth_manager.verify_token(token)
+        success, user_info = auth_manager.verify_admin_token(token)
         if not success:
             return jsonify({"error": "认证失败，请重新登录"}), 401
         
@@ -565,7 +608,7 @@ def add_media():
         if not token:
             return jsonify({"error": "需要登录才能上传文件"}), 401
         
-        success, user_info = auth_manager.verify_token(token)
+        success, user_info = auth_manager.verify_admin_token(token)
         if not success:
             return jsonify({"error": "认证失败，请重新登录"}), 401
         
@@ -651,7 +694,7 @@ def delete_record(rid):
         if not token:
             return jsonify({"error": "需要登录才能删除记录"}), 401
         
-        success, user_info = auth_manager.verify_token(token)
+        success, user_info = auth_manager.verify_admin_token(token)
         if not success:
             return jsonify({"error": "认证失败，请重新登录"}), 401
         
@@ -690,6 +733,11 @@ def serve_storage(filename):
         return jsonify({"error": "access_denied"}), 403
     
     return send_from_directory(STORAGE_ROOT, filename)
+
+@app.route('/admin')
+def admin_redirect():
+    """重定向到admin页面"""
+    return send_from_directory(ROOT_DIR, 'admin.html')
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
