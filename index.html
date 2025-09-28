@@ -64,21 +64,7 @@
                 </div>
             </div>
             
-            <!-- 新增功能区域 -->
-            <div class="features-section">
-                <div class="feature-card" onclick="playLoveSound()">
-                    <div class="feature-icon">🎵</div>
-                    <div class="feature-text">爱的声音</div>
-                </div>
-                <div class="feature-card" onclick="showPhotoGallery()">
-                    <div class="feature-icon">📸</div>
-                    <div class="feature-text">美好回忆</div>
-                </div>
-                <div class="feature-card" onclick="showCountdown()">
-                    <div class="feature-icon">⏰</div>
-                    <div class="feature-text">重要时刻</div>
-                </div>
-            </div>
+            <!-- 新增功能区域已删除 -->
             
             <div class="floating-hearts">
                 <div class="floating-heart">💕</div>
@@ -100,22 +86,21 @@
             <!-- 同意后：计时+记录功能 -->
             <div class="accepted-section hidden" id="acceptedSection">
                 <!-- 网络时间计时器 -->
-                <div class="timer-section" style="margin-bottom:20px;">
-                    <h3 style="color:#333;margin-bottom:10px;">💕 在一起的时间 💕</h3>
-                    <div class="timer-display" id="timerDisplay" style="font-size:1.2em;color:#ff6b6b;font-weight:bold;">
+                <div class="timer-section">
+                    <h3 class="timer-title">💕 在一起的时间 💕</h3>
+                    <div class="timer-display" id="timerDisplay">
                         <div id="timerDays">0</div>天 <div id="timerHours">0</div>小时 <div id="timerMinutes">0</div>分钟
                     </div>
-                    <div style="font-size:0.9em;color:#666;margin-top:5px;">
+                    <div class="timer-subtitle">
                         从表白同意开始计时
                     </div>
                 </div>
 
-                <!-- 功能按钮区 -->
-                <div class="function-buttons" style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:20px 0;">
-                    <button class="love-button" id="btnAddRecord">添加记录</button>
-                    <button class="love-button" id="btnViewRecords">查看记录</button>
-                    <button class="love-button" id="btnReset" style="background:linear-gradient(45deg,#9aa0a6,#c2c5c9);font-size:0.9em;">重置</button>
-                </div>
+            <!-- 功能按钮区 -->
+            <div class="function-buttons">
+                <button class="love-button" id="btnAddRecord">添加记录</button>
+                <button class="love-button" id="btnViewRecords">查看记录</button>
+            </div>
 
                 <!-- 记录上传表单 -->
                 <div class="record-form hidden" id="recordForm">

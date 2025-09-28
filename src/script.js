@@ -246,11 +246,7 @@ function addKeyboardInteractions() {
     });
 }
 
-function playLoveSound() {
-    // 这里可以添加音效，如果需要的话
-    // 由于浏览器限制，需要用户交互后才能播放音频
-    console.log('💕 爱的声音 💕');
-}
+// 已删除的功能：音乐、照片、倒计时
 
 // 添加CSS动画样式
 const style = document.createElement('style');
@@ -462,200 +458,9 @@ function playLoveSound() {
     showNotification('🎵 爱的声音正在播放...');
 }
 
-function showPhotoGallery() {
-    // 创建照片画廊模态框
-    const modal = document.createElement('div');
-    modal.className = 'photo-modal';
-    modal.innerHTML = `
-        <div class="modal-content">
-            <span class="close-modal">&times;</span>
-            <h3>📸 美好回忆</h3>
-            <div class="photo-grid">
-                <div class="photo-placeholder">💕</div>
-                <div class="photo-placeholder">💖</div>
-                <div class="photo-placeholder">💗</div>
-                <div class="photo-placeholder">💝</div>
-            </div>
-            <p>这里可以展示你们的珍贵回忆</p>
-        </div>
-    `;
-    
-    // 添加样式
-    const style = document.createElement('style');
-    style.textContent = `
-        .photo-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-        }
-        .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            max-width: 500px;
-            text-align: center;
-            position: relative;
-        }
-        .close-modal {
-            position: absolute;
-            top: 10px;
-            right: 20px;
-            font-size: 30px;
-            cursor: pointer;
-            color: #ff6b6b;
-        }
-        .photo-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-            margin: 20px 0;
-        }
-        .photo-placeholder {
-            width: 100px;
-            height: 100px;
-            background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2em;
-            margin: 0 auto;
-        }
-    `;
-    
-    document.head.appendChild(style);
-    document.body.appendChild(modal);
-    
-    // 关闭模态框
-    modal.querySelector('.close-modal').onclick = () => {
-        document.body.removeChild(modal);
-        document.head.removeChild(style);
-    };
-    
-    modal.onclick = (e) => {
-        if (e.target === modal) {
-            document.body.removeChild(modal);
-            document.head.removeChild(style);
-        }
-    };
-}
+// 照片画廊功能已删除
 
-function showCountdown() {
-    // 创建倒计时模态框
-    const modal = document.createElement('div');
-    modal.className = 'countdown-modal';
-    modal.innerHTML = `
-        <div class="modal-content">
-            <span class="close-modal">&times;</span>
-            <h3>⏰ 重要时刻倒计时</h3>
-            <div class="countdown-display">
-                <div class="time-unit">
-                    <span class="time-number" id="days">00</span>
-                    <span class="time-label">天</span>
-                </div>
-                <div class="time-unit">
-                    <span class="time-number" id="hours">00</span>
-                    <span class="time-label">时</span>
-                </div>
-                <div class="time-unit">
-                    <span class="time-number" id="minutes">00</span>
-                    <span class="time-label">分</span>
-                </div>
-                <div class="time-unit">
-                    <span class="time-number" id="seconds">00</span>
-                    <span class="time-label">秒</span>
-                </div>
-            </div>
-            <p>距离下一个重要时刻</p>
-        </div>
-    `;
-    
-    // 添加样式
-    const style = document.createElement('style');
-    style.textContent = `
-        .countdown-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-        }
-        .countdown-display {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin: 30px 0;
-        }
-        .time-unit {
-            text-align: center;
-        }
-        .time-number {
-            display: block;
-            font-size: 2em;
-            font-weight: bold;
-            color: #ff6b6b;
-        }
-        .time-label {
-            font-size: 0.9em;
-            color: #666;
-        }
-    `;
-    
-    document.head.appendChild(style);
-    document.body.appendChild(modal);
-    
-    // 设置目标时间（示例：1年后）
-    const targetDate = new Date();
-    targetDate.setFullYear(targetDate.getFullYear() + 1);
-    
-    // 更新倒计时
-    function updateCountdown() {
-        const now = new Date();
-        const timeLeft = targetDate - now;
-        
-        if (timeLeft > 0) {
-            const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-            
-            document.getElementById('days').textContent = days.toString().padStart(2, '0');
-            document.getElementById('hours').textContent = hours.toString().padStart(2, '0');
-            document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
-            document.getElementById('seconds').textContent = seconds.toString().padStart(2, '0');
-        }
-    }
-    
-    updateCountdown();
-    const countdownInterval = setInterval(updateCountdown, 1000);
-    
-    // 关闭模态框
-    modal.querySelector('.close-modal').onclick = () => {
-        clearInterval(countdownInterval);
-        document.body.removeChild(modal);
-        document.head.removeChild(style);
-    };
-    
-    modal.onclick = (e) => {
-        if (e.target === modal) {
-            clearInterval(countdownInterval);
-            document.body.removeChild(modal);
-            document.head.removeChild(style);
-        }
-    };
-}
+// 倒计时功能已删除
 
 function showNotification(message) {
     const notification = document.createElement('div');
@@ -851,7 +656,6 @@ function setupConsentAndRecords() {
     const btnSaveMedia = document.getElementById('btnSaveMedia');
     const btnCancelRecord = document.getElementById('btnCancelRecord');
     const btnBackToMain = document.getElementById('btnBackToMain');
-    const btnReset = document.getElementById('btnReset');
     const btnRetentionMemories = document.getElementById('btnRetentionMemories');
     const btnRetentionNote = document.getElementById('btnRetentionNote');
     const btnRetentionLater = document.getElementById('btnRetentionLater');
@@ -928,35 +732,10 @@ function setupConsentAndRecords() {
         recordForm && recordForm.classList.add('hidden');
     });
 
-    // 重置按钮
-    btnReset && btnReset.addEventListener('click', () => {
-        if (confirm('确定要重置吗？这将清除所有数据并回到初始状态。')) {
-            try {
-                // 清除localStorage
-                localStorage.removeItem('love_acceptance_time');
-                localStorage.removeItem('retention_note');
-                
-                // 重置界面
-                if (acceptedSection) acceptedSection.classList.add('hidden');
-                if (recordForm) recordForm.classList.add('hidden');
-                if (recordsView) recordsView.classList.add('hidden');
-                if (retentionSection) retentionSection.classList.add('hidden');
-                if (consentSection) consentSection.classList.remove('hidden');
-                
-                // 确保加载动画被隐藏
-                forceHideLoading();
-                
-                showNotification('已重置，请重新开始');
-                console.log('页面已重置');
-            } catch (error) {
-                console.error('重置时发生错误:', error);
-                showNotification('重置失败，请刷新页面');
-            }
-        }
-    });
+    // 重置功能已删除
 
     btnRetentionMemories && btnRetentionMemories.addEventListener('click', () => {
-        showPhotoGallery();
+        showNotification('照片功能已删除');
     });
 
     btnRetentionNote && btnRetentionNote.addEventListener('click', () => {
@@ -1258,7 +1037,9 @@ async function showRecordDetail(recordId) {
             if (record.type === 'image') {
                 mediaHtml = `<img src="${mediaUrl}" style="max-width:100%;border-radius:10px;margin-top:10px;" alt="图片">`;
             } else if (record.type === 'video') {
-                mediaHtml = `<video src="${mediaUrl}" controls style="max-width:100%;border-radius:10px;margin-top:10px;"></video>`;
+                mediaHtml = `<video src="${mediaUrl}" controls preload="metadata" style="max-width:100%;border-radius:10px;margin-top:10px;max-height:400px;">
+                    <p>您的浏览器不支持视频播放</p>
+                </video>`;
             }
         }
         
