@@ -1,0 +1,2 @@
+source /home/tang/Desktop/love/server_py/.venv/bin/activate
+python /home/tang/Desktop/love/server_py/app.py

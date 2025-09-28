@@ -1,0 +1,51 @@
+{
+  "records": [
+    {
+      "id": "rec_SSWBePiN",
+      "type": "image",
+      "title": "testdata",
+      "text": "ninon",
+      "date": "2025-09-26",
+      "mediaPath": "uploads/1758848890752_1j9tqT_Screenshot_2025-09-26-16-40-59-63_439a3fec0400f8974d35eed09a31f914.jpg",
+      "createdAt": "2025-09-26T10:08:10.754879Z",
+      "updatedAt": "2025-09-26T10:08:10.756075Z"
+    },
+    {
+      "id": "rec_-rSMcYqA",
+      "type": "text",
+      "title": "testdata",
+      "text": "ninon",
+      "date": "2025-09-26",
+      "createdAt": "2025-09-26T10:08:15.166595Z",
+      "updatedAt": "2025-09-26T10:08:15.166656Z"
+    },
+    {
+      "id": "rec_suSYq_Jz",
+      "type": "text",
+      "title": "6",
+      "text": "，",
+      "date": "2025-09-26",
+      "createdAt": "2025-09-26T10:17:00.278778Z",
+      "updatedAt": "2025-09-26T10:17:00.278993Z"
+    },
+    {
+      "id": "rec_Fizs1oJ1",
+      "type": "video",
+      "title": "6",
+      "text": "",
+      "date": "2025-09-26",
+      "mediaPath": "uploads/1758849421670_aI-BxM_comment_1fbf2ec82be4c444e271f49cfce693dc.png",
+      "createdAt": "2025-09-26T10:17:01.671559Z",
+      "updatedAt": "2025-09-26T10:17:01.671644Z"
+    },
+    {
+      "id": "rec_Y3jC91bN",
+      "type": "text",
+      "title": "",
+      "text": "给多少人群发了你就说",
+      "date": "2025-09-26",
+      "createdAt": "2025-09-26T10:50:39.365032Z",
+      "updatedAt": "2025-09-26T10:50:39.365044Z"
+    }
+  ]
+}

@@ -87,6 +87,105 @@
                 <div class="floating-heart">💝</div>
                 <div class="floating-heart">💘</div>
             </div>
+
+            <!-- 同意/拒绝 功能区 -->
+            <div class="consent-section" id="consentSection">
+                <h2 class="title" style="font-size:1.6em;margin-top:20px;">愿不愿意与我一起记录我们的故事？</h2>
+                <div style="display:flex;gap:12px;justify-content:center;margin:10px 0;flex-wrap:wrap;">
+                    <button class="love-button" id="btnAccept">愿意</button>
+                    <button class="love-button" id="btnReject" style="background:linear-gradient(45deg,#9aa0a6,#c2c5c9)">抱歉</button>
+                </div>
+            </div>
+
+            <!-- 同意后：计时+记录功能 -->
+            <div class="accepted-section hidden" id="acceptedSection">
+                <!-- 网络时间计时器 -->
+                <div class="timer-section" style="margin-bottom:20px;">
+                    <h3 style="color:#333;margin-bottom:10px;">💕 在一起的时间 💕</h3>
+                    <div class="timer-display" id="timerDisplay" style="font-size:1.2em;color:#ff6b6b;font-weight:bold;">
+                        <div id="timerDays">0</div>天 <div id="timerHours">0</div>小时 <div id="timerMinutes">0</div>分钟
+                    </div>
+                    <div style="font-size:0.9em;color:#666;margin-top:5px;">
+                        从表白同意开始计时
+                    </div>
+                </div>
+
+                <!-- 功能按钮区 -->
+                <div class="function-buttons" style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:20px 0;">
+                    <button class="love-button" id="btnAddRecord">添加记录</button>
+                    <button class="love-button" id="btnViewRecords">查看记录</button>
+                    <button class="love-button" id="btnReset" style="background:linear-gradient(45deg,#9aa0a6,#c2c5c9);font-size:0.9em;">重置</button>
+                </div>
+
+                <!-- 记录上传表单 -->
+                <div class="record-form hidden" id="recordForm">
+                    <h3 style="margin-bottom:10px;color:#333;">添加一条记录</h3>
+                    <div style="display:grid;gap:10px;text-align:left;">
+                        <label>标题
+                            <input type="text" id="recTitle" placeholder="例如：第一次见面" style="width:100%;padding:10px;border-radius:10px;border:1px solid #eee;">
+                        </label>
+                        <label>文字
+                            <textarea id="recText" placeholder="写点心里话..." rows="3" style="width:100%;padding:10px;border-radius:10px;border:1px solid #eee;"></textarea>
+                        </label>
+                        <label>日期
+                            <input type="date" id="recDate" style="width:100%;padding:10px;border-radius:10px;border:1px solid #eee;">
+                        </label>
+                        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                            <label style="margin-right:8px;">图片/视频
+                                <input type="file" id="recFile" accept="image/*,video/*" style="display:block;margin-top:6px;">
+                            </label>
+                            <select id="recType" style="padding:10px;border-radius:10px;border:1px solid #eee;">
+                                <option value="image">图片</option>
+                                <option value="video">视频</option>
+                            </select>
+                        </div>
+                        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                            <button class="love-button" id="btnSaveText">仅保存文字</button>
+                            <button class="love-button" id="btnSaveMedia">上传媒体</button>
+                            <button class="love-button" id="btnCancelRecord" style="background:linear-gradient(45deg,#9aa0a6,#c2c5c9)">取消</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 历史记录展示 -->
+                <div class="records-view hidden" id="recordsView">
+                    <h3 style="color:#333;margin-bottom:15px;">📚 我们的记录</h3>
+                    <div class="records-list" id="recordsList" style="text-align:left;">
+                        <!-- 记录列表将在这里动态生成 -->
+                    </div>
+                    <div style="margin-top:15px;">
+                        <button class="love-button" id="btnBackToMain">返回主页</button>
+                    </div>
+                </div>
+
+                <!-- 记录详情弹窗 -->
+                <div class="record-detail-modal hidden" id="recordDetailModal">
+                    <div class="modal-content" style="background:white;padding:20px;border-radius:15px;max-width:500px;margin:0 auto;">
+                        <span class="close-modal" id="closeDetailModal" style="float:right;font-size:24px;cursor:pointer;color:#ff6b6b;">&times;</span>
+                        <div id="recordDetailContent">
+                            <!-- 详情内容将在这里动态生成 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 拒绝后的挽留区 -->
+            <div class="retention-section hidden" id="retentionSection">
+                <h3 style="margin-bottom:10px;color:#333;">谢谢你的坦诚，我依然珍惜这份回忆</h3>
+                <p class="message" style="margin-bottom:15px;">要不要：看看回忆 / 说点想法 / 以后再说？</p>
+                <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+                    <button class="love-button" id="btnRetentionMemories">看看回忆</button>
+                    <button class="love-button" id="btnRetentionNote">说点想法</button>
+                    <button class="love-button" id="btnRetentionLater" style="background:linear-gradient(45deg,#9aa0a6,#c2c5c9)">以后再说</button>
+                </div>
+                <div id="retentionNoteBox" class="hidden" style="margin-top:12px;text-align:left;">
+                    <textarea id="retentionNote" rows="3" placeholder="写下一点想法（仅本地保存）" style="width:100%;padding:10px;border-radius:10px;border:1px solid #eee;"></textarea>
+                    <div style="margin-top:8px;display:flex;gap:10px;">
+                        <button class="love-button" id="btnSaveRetentionNote">保存想法</button>
+                        <button class="love-button" id="btnChangeMind">我改变主意了</button>
+                    </div>
+                </div>
+            </div>
         </div>
         
         <!-- 加载动画 -->
